@@ -1,183 +1,184 @@
-import React from "react";
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import axios from "axios";
+import { toast } from "sonner";
+
 import Navbar from "../Navbar";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
-import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 import { Button } from "../ui/button";
-import { Link, useNavigate } from "react-router-dom";
-import { useState } from "react";
 import { USER_API_END_POINT } from "../../utilis/constant";
 
-import axios from "axios";
-
 function Signup() {
-  const [input, setinput] = useState({
+  const [form, setForm] = useState({
     fullname: "",
     email: "",
     phoneNumber: "",
     password: "",
-    role: "",
-    file: "",
+    role: "student",
+    file: null,
   });
+
   const navigate = useNavigate();
-  const changeEventHandler = (e) => {
-    setinput({ ...input, [e.target.name]: e.target.value });
+
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  const changeFileHandler = (e) => {
-    setinput({ ...input, file: e.target.files[0] });
+
+  const handleFileChange = (e) => {
+    setForm((prev) => ({ ...prev, file: e.target.files[0] }));
   };
 
-  const submitHandler = async (e) => {
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
+
     const formData = new FormData();
-    formData.append("fullname", input.fullname);
-    formData.append("email", input.email);
-    formData.append("phoneNumber", input.phoneNumber);
-    formData.append("password", input.password);
-    formData.append("role", input.role);
-    if (input.file) {
-      formData.append("file", input.file);
-    }
-    console.log(
-      "Submitting form with:",
-      Object.fromEntries(formData.entries())
-    );
+    Object.entries(form).forEach(([key, value]) => {
+      if (value) formData.append(key, value);
+    });
 
     try {
-      const res = await axios.post(
-        `http://localhost:3000/api/v1/user/register`,
+      const { data } = await axios.post(
+        `${USER_API_END_POINT}/register`,
         formData,
         {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-          withCredentials: true,
+          headers: { "Content-Type": "multipart/form-data" },
         }
       );
-      if (res.data.success) {
-        navigate("/login");
-        toast.success(res.data.message);
-      }
+      console.log(data);
+      toast.success(data.message || "Signup successful!");
+      navigate("/login");
     } catch (err) {
-      console.log(err);
+      console.error("Signup error:", err);
+      toast.error(err.response?.data?.message || "Signup failed!");
     }
   };
+
   return (
     <>
       <Navbar />
-
-      <div className="flex items-center justify-center max-w-7xl mx-auto ">
+      <div className="flex items-center justify-center max-w-7xl mx-auto">
         <form
-          onSubmit={submitHandler}
-          className="w-1/2 border border-gray-200 rounded-md p-6 my-10 bg-white shadow"
+          onSubmit={handleSubmit}
+          className="w-full md:w-1/2 border border-gray-200 rounded-md p-6 my-10 bg-white shadow"
         >
-          <h1 className="font-bold text-2xl mb-5">Sign-up</h1>
+          <h1 className="font-bold text-2xl mb-6 text-center">Create Account</h1>
 
-          <div className="my-4">
+
+          <div className="mb-4">
             <Label htmlFor="fullname">Full Name</Label>
             <Input
               id="fullname"
-              type="text"
-              value={input.fullname}
               name="fullname"
-              onChange={changeEventHandler}
+              type="text"
+              value={form.fullname}
+              onChange={handleChange}
               placeholder="Enter your name"
-              className="w-full mt-1"
+              required
             />
           </div>
 
-          <div className="my-4">
+ 
+          <div className="mb-4">
             <Label htmlFor="email">Email</Label>
             <Input
               id="email"
-              type="email"
-              value={input.email}
               name="email"
-              onChange={changeEventHandler}
+              type="email"
+              value={form.email}
+              onChange={handleChange}
               placeholder="Enter your email"
-              className="w-full mt-1"
+              required
             />
           </div>
 
-          <div className="my-4">
+      
+          <div className="mb-4">
             <Label htmlFor="password">Password</Label>
             <Input
               id="password"
-              type="password"
-              value={input.password}
               name="password"
-              onChange={changeEventHandler}
+              type="password"
+              value={form.password}
+              onChange={handleChange}
               placeholder="Enter your password"
-              className="w-full mt-1"
+              required
             />
           </div>
-          <div className="my-4">
+
+        
+          <div className="mb-4">
+            <Label htmlFor="phoneNumber">Phone Number</Label>
             <Input
-              id="phonenumber"
-              type="number"
-              value={input.phoneNumber}
+              id="phoneNumber"
               name="phoneNumber"
-              onChange={changeEventHandler}
+              type="number"
+              value={form.phoneNumber}
+              onChange={handleChange}
               placeholder="Enter your phone number"
-              className="w-full mt-1"
+              required
             />
           </div>
-          <div className="flex items-center justify-between cursor-pointer">
-            <RadioGroup
-              defaultValue="option-one"
-              className="flex items-center space-x-2"
-            >
-              <div className="flex items-center space-x-2">
-                <Input
-                  id="option-one"
+
+   
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex gap-6">
+              <label className="flex items-center space-x-2 cursor-pointer">
+                <input
                   type="radio"
                   name="role"
                   value="student"
-                  checked={input.role === "student"}
-                  onChange={changeEventHandler}
-                  className="cursor-pointer"
+                  checked={form.role === "student"}
+                  onChange={handleChange}
                 />
-                <Label htmlFor="option-one">Student</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Input
-                  id="option-two"
+                <span>Student</span>
+              </label>
+              <label className="flex items-center space-x-2 cursor-pointer">
+                <input
                   type="radio"
                   name="role"
                   value="recruiter"
-                  checked={input.role === "recruiter"}
-                  onChange={changeEventHandler}
-                  className="cursor-pointer"
+                  checked={form.role === "recruiter"}
+                  onChange={handleChange}
                 />
-                <Label htmlFor="option-two">Recruiter</Label>
-              </div>
-            </RadioGroup>
-            <div className="flex items-center gap-2">
-              <Label>
-                Profile
-                <Input
-                  accept="image/*"
-                  type="file"
-                  onChange={changeFileHandler}
-                  className="cursor-pointer"
-                />
+                <span>Recruiter</span>
+              </label>
+            </div>
+
+            {/* Profile Upload */}
+            <div>
+              <Label htmlFor="file" className="cursor-pointer">
+                Profile Picture
               </Label>
+              <Input
+                id="file"
+                type="file"
+                accept="image/*"
+                onChange={handleFileChange}
+                className="cursor-pointer"
+              />
             </div>
           </div>
 
-          <button
-            onClick={submitHandler}
+
+          <Button
+            type="submit"
             className="mt-4 w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600"
           >
             Sign Up
-          </button>
-          <span className="text-sm mt-20 pt-18">
-            Aleady have an account?
-            <Link to="/login" className="text-blue-400">
+          </Button>
+
+
+          <p className="text-sm text-center mt-4">
+            Already have an account?{" "}
+            <Link to="/login" className="text-blue-500 hover:underline">
               Login
             </Link>
-          </span>
+          </p>
         </form>
       </div>
     </>

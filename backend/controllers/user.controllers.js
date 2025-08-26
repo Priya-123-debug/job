@@ -16,12 +16,10 @@ export const register = async (req, res) => {
     }
     const user = await User.findOne({ email });
     if (user) {
-      return res
-        .status(400)
-        .json({
-          message: "user already exists with this email",
-          success: false,
-        });
+      return res.status(400).json({
+        message: "user already exists with this email",
+        success: false,
+      });
     }
     const hashedPassword = await bcrypt.hash(password, 10);
     await User.create({
@@ -49,30 +47,24 @@ export const login = async (req, res) => {
     }
     let user = await User.findOne({ email });
     if (!user) {
-      return res
-        .status(400)
-        .json({
-          message: "user does not exista with this email",
-          success: false,
-        });
+      return res.status(400).json({
+        message: "user does not exista with this email",
+        success: false,
+      });
     }
     const ispasswordmatch = await bcrypt.compare(password, user.password);
     if (!ispasswordmatch) {
-      return res
-        .status(400)
-        .json({
-          message: "user does not exista with this email",
-          success: false,
-        });
+      return res.status(400).json({
+        message: "user does not exista with this email",
+        success: false,
+      });
     }
     // check role is correct ornot
     if (user.role !== role) {
-      return res
-        .status(400)
-        .json({
-          message: "please make sure you are logging in from right portal",
-          success: false,
-        });
+      return res.status(400).json({
+        message: "please make sure you are logging in from right portal",
+        success: false,
+      });
     }
     const tokendata = {
       userId: user._id,
